@@ -38,7 +38,7 @@ public class SpringAMQPComponent extends DefaultComponent {
 
         //Attempt to load a connection factory from the registry
         if(this.connectionFactory == null) {
-            this.connectionFactory = context.getRegistry().findByTypeWithName(ConnectionFactory.class);
+            this.connectionFactory = context.getRegistry().lookupByType(ConnectionFactory.class);
             if(this.connectionFactory != null && !this.connectionFactory.isEmpty()) {
                 for(Map.Entry<String, ConnectionFactory> connection : this.connectionFactory.entrySet()){
                     LOG.info("Found AMQP ConnectionFactory in registry for {}", connection.getValue().getHost());
@@ -63,8 +63,13 @@ public class SpringAMQPComponent extends DefaultComponent {
     @Override
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
         String connection = parameters.get(CONNECTION) != null ? (String) parameters.get(CONNECTION) : connectionFactory.keySet().iterator().next();
-        SpringAMQPEndpoint endpoint = new SpringAMQPEndpoint(this, uri, remaining,
-                getAmqpTemplate().get(connection), getAmqpAdministration().get(connection));
+        
+        Map<String, AmqpTemplate> amqpTemplates = getAmqpTemplate();
+        AmqpTemplate template = (amqpTemplates.size() == 1) ? amqpTemplates.values().iterator().next() : amqpTemplates.get(connection);
+        Map<String, AmqpAdmin> amqpAdmins = getAmqpAdministration();
+        AmqpAdmin admin = (amqpAdmins.size() == 1) ? amqpAdmins.values().iterator().next() : amqpAdmins.get(connection);
+        
+        SpringAMQPEndpoint endpoint = new SpringAMQPEndpoint(this, uri, remaining, template, admin);
         setProperties(endpoint, parameters);
         return endpoint;
     }
@@ -87,7 +92,7 @@ public class SpringAMQPComponent extends DefaultComponent {
         if(this.amqpAdministration == null && getCamelContext() != null && getCamelContext().getRegistry() != null) {
             //Attempt to load an administration connection from the registry
             this.amqpAdministration = new HashMap<String, AmqpAdmin>();
-            Map<String, AmqpAdmin> adminMap = getCamelContext().getRegistry().findByTypeWithName(AmqpAdmin.class);
+            Map<String, AmqpAdmin> adminMap = getCamelContext().getRegistry().lookupByType(AmqpAdmin.class);
             for(AmqpAdmin admin : adminMap.values()){
                 CachingConnectionFactory adminConnection = (CachingConnectionFactory)((RabbitAdmin)admin).getRabbitTemplate().getConnectionFactory();
                 for(Map.Entry<String, ConnectionFactory> connection : this.connectionFactory.entrySet()){
@@ -126,7 +131,7 @@ public class SpringAMQPComponent extends DefaultComponent {
         if(this.amqpTemplate == null && getCamelContext() != null && getCamelContext().getRegistry() != null) {
             //Attempt to load an AMQP template from the registry
             this.amqpTemplate = new HashMap<String, AmqpTemplate>();
-            Map<String, AmqpTemplate> templateMap = getCamelContext().getRegistry().findByTypeWithName(AmqpTemplate.class);
+            Map<String, AmqpTemplate> templateMap = getCamelContext().getRegistry().lookupByType(AmqpTemplate.class);
             for(AmqpTemplate template : templateMap.values()){
                 CachingConnectionFactory adminConnection = (CachingConnectionFactory)((RabbitTemplate) template).getConnectionFactory();
                 for(Map.Entry<String, ConnectionFactory> connection : this.connectionFactory.entrySet()){
