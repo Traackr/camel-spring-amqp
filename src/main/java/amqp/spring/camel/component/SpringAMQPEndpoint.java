@@ -49,7 +49,7 @@ public class SpringAMQPEndpoint extends DefaultEndpoint {
     int concurrentConsumers = 1;
     int prefetchCount = 1;
     Integer timeToLive = null;
-    AcknowledgeMode acknowledgeMode = AcknowledgeMode.NONE;
+    AcknowledgeMode acknowledgeMode = AcknowledgeMode.AUTO;
     
     //The second and third parameters to the URI can be interchangable based on the context.
     //Place them here until we determine if we're a consumer or producer.
