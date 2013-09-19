@@ -67,22 +67,26 @@ public class SpringAMQPMessage extends DefaultMessage {
     }
 
     public Message toAMQPMessage(MessageConverter msgConverter) {
-        MessageProperties properties = new MessageProperties();
+        return toAMQPMessage(msgConverter, new MessageProperties());
+    }
+    
+    public Message toAMQPMessage(MessageConverter msgConverter, MessageProperties properties) {
+      if(null == properties.getMessageId())
         properties.setMessageId(this.getMessageId());
-        
-        Message amqpMessage;
-        if(this.getBody() != null) {
-            amqpMessage = msgConverter.toMessage(this.getBody(), properties);
-            
-            if(LOG.isTraceEnabled()) {
-                String asText = new String(amqpMessage.getBody());
-                LOG.trace("Translating To AMQP Message: "+asText);
-            }
-        } else {
-            amqpMessage = new Message(new byte[]{}, properties);
+
+      Message amqpMessage;
+      if(this.getBody() != null) {
+        amqpMessage = msgConverter.toMessage(this.getBody(), properties);
+
+       if(LOG.isTraceEnabled()) {
+          String asText = new String(amqpMessage.getBody());
+          LOG.trace("Translating To AMQP Message: "+asText);
         }
-        
-        return new HeadersPostProcessor(this).postProcessMessage(amqpMessage);
+      } else {
+        amqpMessage = new Message(new byte[]{}, properties);
+      }
+
+      return new HeadersPostProcessor(this).postProcessMessage(amqpMessage);
     }
     
     public static class HeadersPostProcessor implements MessagePostProcessor {
