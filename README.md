@@ -23,6 +23,8 @@ The routing key is optional, but Queue Name and Exchange Name are required for c
 
 Producers can also defer the routing key to the message header, where the ROUTING_KEY header could be set to the appropriate routing key.
 
+Producers can override the exchange name specified in the URI by setting the EXCHANGE_NAME Camel message header.
+
 Options to the URI include the exchange type, which defaults to direct if none is specified.
 
 For header based exchanges, the URI is similar but name/value pairs can be specified in place of the routing key. For example:
@@ -64,7 +66,7 @@ Parameters available include:
     </tr>
     <tr>
         <td>durable</td>
-        <td>Make messages being produced from this endpoint persistent</td>
+        <td>Make queues and exchanges created by this endpoint persistent</td>
     </tr>
     <tr>
         <td>type</td>
@@ -81,6 +83,10 @@ Parameters available include:
     <tr>
         <td>connection</td>
         <td>Configure a specific connection factory (for systems with multiple AMQP brokers)</td>
+    </tr>
+    <tr>
+        <td>autoReply</td>
+        <td>Consumer sends back a response message when ReplyTo header is present in the consumed message. Defaults to true.</td>
     </tr>
 </table>
 
@@ -132,7 +138,7 @@ You can include this component within your Maven POM as:
 	<dependency>
 	    <groupId>com.bluelock</groupId>
 	    <artifactId>camel-spring-amqp</artifactId>
-	    <version>1.6.2</version>
+	    <version>1.6.3</version>
 	</dependency>
 
 ## Limitations

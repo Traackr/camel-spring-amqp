@@ -18,14 +18,14 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 /**
- * RabbitMQ Consumer URIs are in the format of:<br/>
- * <code>spring-amqp:exchange:queue:routingKey?params=values</code><br/>
+ * RabbitMQ Consumer URIs are in the format of:<br>
+ * <code>spring-amqp:exchange:queue:routingKey?params=values</code><br>
  * 
- * RabbitMQ Producer URIs are in the format of:<br/>
- * <code>spring-amqp:exchange:routingKey?params=values</code><br/>
+ * RabbitMQ Producer URIs are in the format of:<br>
+ * <code>spring-amqp:exchange:routingKey?params=values</code><br>
  * 
- * Producers can also defer the routing key to the message header, in which case the URI could be:<br/>
- * <code>spring-amqp:exchange?params=values</code><br/>
+ * Producers can also defer the routing key to the message header, in which case the URI could be:<br>
+ * <code>spring-amqp:exchange?params=values</code><br>
  * And the ROUTING_KEY header could be set to the appropriate routing key.
  */
 public class SpringAMQPEndpoint extends DefaultEndpoint {
@@ -46,6 +46,7 @@ public class SpringAMQPEndpoint extends DefaultEndpoint {
     boolean autodelete = true;
     boolean transactional = false;
     boolean ha = false;
+    boolean autoReply = true;
     int concurrentConsumers = 1;
     int prefetchCount = 1;
     Integer timeToLive = null;
@@ -162,6 +163,14 @@ public class SpringAMQPEndpoint extends DefaultEndpoint {
     public void setHa(boolean ha) {
         this.ha = ha;
     }
+    
+    public boolean isAutoReply() {
+        return autoReply;
+    }
+
+    public void setAutoReply(boolean autoReply) {
+        this.autoReply = autoReply;
+    }
 
     public String getConnection() {
         return connection;
@@ -267,6 +276,7 @@ public class SpringAMQPEndpoint extends DefaultEndpoint {
         builder.append("&transactional=").append(this.transactional);
         if ( this.ha )
         	builder.append("&x-ha-policy=all");
+        builder.append("&autoReply=").append(this.autoReply);
         
         return builder.toString();        
     }
