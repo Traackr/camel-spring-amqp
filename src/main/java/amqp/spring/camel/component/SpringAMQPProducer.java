@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpConnectException;
 import org.springframework.amqp.AmqpIOException;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
@@ -139,6 +140,11 @@ public class SpringAMQPProducer extends DefaultAsyncProducer {
             
             String routingKeyHeader = message.getHeader(SpringAMQPComponent.ROUTING_KEY_HEADER, String.class);
             String routingKey = routingKeyHeader != null ? routingKeyHeader : endpoint.routingKey;
+
+            MessageProperties messageProperties = new MessageProperties();
+            String messageContentType = message.getHeader("contentType", String.class);
+            if (null != messageContentType)
+                messageProperties.setContentType(messageContentType);
             
             String exchangeNameHeader = message.getHeader(SpringAMQPComponent.EXCHANGE_NAME_HEADER, String.class);
             String exchangeName = exchangeNameHeader != null ? exchangeNameHeader : endpoint.exchangeName;
@@ -146,7 +152,7 @@ public class SpringAMQPProducer extends DefaultAsyncProducer {
             try {
                 if(exchange.getPattern().isOutCapable()) {
                     LOG.debug("Synchronous send and request for exchange {}", exchange.getExchangeId());
-                    Message amqpResponse = endpoint.getAmqpTemplate().sendAndReceive(exchangeName, routingKey, inMessage.toAMQPMessage(msgConverter));
+                    Message amqpResponse = endpoint.getAmqpTemplate().sendAndReceive(exchangeName, routingKey, inMessage.toAMQPMessage(msgConverter, messageProperties));
                     SpringAMQPMessage camelResponse = SpringAMQPMessage.fromAMQPMessage(msgConverter, amqpResponse);
 
                     Boolean isExceptionCaught = camelResponse != null && (Boolean)camelResponse.getHeader(SpringAMQPMessage.IS_EXCEPTION_CAUGHT, Boolean.FALSE);
@@ -164,7 +170,7 @@ public class SpringAMQPProducer extends DefaultAsyncProducer {
                     }
                 } else {
                     LOG.debug("Synchronous send for exchange {}", exchange.getExchangeId());
-                    endpoint.getAmqpTemplate().send(exchangeName, routingKey, inMessage.toAMQPMessage(msgConverter));
+                    endpoint.getAmqpTemplate().send(exchangeName, routingKey, inMessage.toAMQPMessage(msgConverter, messageProperties));
                 }
             } catch (Throwable t) {
                 LOG.error("Could not deliver message via AMQP", t);

@@ -68,7 +68,12 @@ public class SpringAMQPMessage extends DefaultMessage {
 
     public Message toAMQPMessage(MessageConverter msgConverter) {
         MessageProperties properties = new MessageProperties();
-        properties.setMessageId(this.getMessageId());
+        return toAMQPMessage(msgConverter, properties);
+    }
+
+    public Message toAMQPMessage(MessageConverter msgConverter, MessageProperties properties) {
+        if (null == properties.getMessageId())
+            properties.setMessageId(this.getMessageId());
         
         Message amqpMessage;
         if(this.getBody() != null) {
